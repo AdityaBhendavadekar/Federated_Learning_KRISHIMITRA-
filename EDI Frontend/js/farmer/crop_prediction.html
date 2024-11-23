@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Prediction Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #4CAF50;
+            padding: 10px;
+            color: white;
+            text-align: center;
+        }
+
+        .navbar a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .location-coordinates {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .predicted-crops {
+            margin-top: 20px;
+        }
+
+        .predicted-crops label {
+            font-weight: normal;
+        }
+
+        .dropdown-container {
+            margin-top: 10px;
+        }
+
+        .disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="fertilizer_recommendation.html">Fertilizer Recommendations</a>
+        <a href="irrigation.html">Irrigation Monitoring</a>
+        <a href="pesticides.html">Pesticides Detection</a>
+        <a href="profile.html">My Profile</a>
+        <a href="login.html">Logout</a>
+    </div>
+
+    <div class="container">
+        <h2>Crop Prediction Input</h2>
+        <form id="cropForm" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <label for="nitrogen">Nitrogen (N)</label>
+                <input type="number" id="nitrogen" placeholder="Enter Nitrogen value" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phosphorus">Phosphorus (P)</label>
+                <input type="number" id="phosphorus" placeholder="Enter Phosphorus value" required>
+            </div>
+
+            <div class="form-group">
+                <label for="potassium">Potassium (K)</label>
+                <input type="number" id="potassium" placeholder="Enter Potassium value" required>
+            </div>
+
+            <!-- <div class="form-group">
+                <label for="moisture">Moisture (%)</label>
+                <input type="number" id="moisture" placeholder="Enter Moisture value" required>
+            </div> -->
+
+            <div class="form-group">
+                <label for="ph">pH</label>
+                <input type="number" step="0.1" id="ph" placeholder="Enter pH value" required>
+            </div>
+
+            <div class="form-group">
+                <label>Location</label>
+                <div class="location-coordinates">
+                    <input type="text" id="latitude" placeholder="Latitude" readonly>
+                    <input type="text" id="longitude" placeholder="Longitude" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="temperature">Temperature (°C)</label>
+                <input type="number" id="temperature" placeholder="Temperature" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="humidity">Humidity (%)</label>
+                <input type="number" id="humidity" placeholder="Humidity" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="rainfall">Rainfall (mm)</label>
+                <input type="number" id="rainfall" placeholder="Rainfall (average last 6 months)" readonly>
+            </div>
+
+            <button type="button" onclick="getLocation()">Get Location</button>
+            <p class="error" id="locationError"></p>
+
+            <button type="button" onclick="predictCrops()">Predict Crop</button>
+
+            <div class="predicted-crops" id="predictedCrops"></div>
+            <div class="dropdown-container" id="dropdownContainer" style="display: none;">
+                <label for="cropDropdown">If you didn’t grow these crops, select one:</label>
+                <select id="cropDropdown" onchange="handleDropdownChange()">
+                    <option value="">Select a crop</option>
+                </select>
+            </div>
+            <button type="submit">Submit Selection</button>
+        </form>
+    </div>
+
+    <script>
+        const allCrops = [
+    'Amaranthus', 'Amla', 'Amphophalus', 'Apple', 'Arecanut', 'Ash Gourd', 
+    'Bajra', 'Banana', 'Barley', 'Beans', 'Beetroot', 'Bengal Gram', 
+    'Betal Leaves', 'Bitter Gourd', 'Black Gram', 'Black pepper', 'Bottle Gourd',
+    'Brinjal', 'Broken Rice', 'Cabbage', 'Capsicum', 'Carrot', 'Cashewnuts', 
+    'Castor Seed', 'Cauliflower', 'Chana Dal', 'Chholia', 'Chilly Capsicum', 
+    'Cluster Beans', 'Coconut', 'Coconut Oil', 'Coconut Seed', 'Colacasia', 
+    'Copra', 'Coriander', 'Corriander seed', 'Cotton', 'Cowpea', 'Cucumber', 
+    'Cumbu', 'Drumstick', 'Dry Chillies', 'Duster Beans', 'Elephat Yam', 
+    'Field Pea', 'Fish', 'French Beans', 'Garlic', 'Ghee', 'Gingelly Oil', 
+    'Ginger', 'Grapes', 'Green Avare', 'Green Banana', 'Green Chilli', 
+    'Green Gram', 'Green Onion', 'Green Peas', 'Ground Nut Seed', 'Groundnut', 
+    'Guar', 'Guava', 'Horse Gram', 'Hybrid Cumbu', 'Jaggery', 'Jowar', 'Jute', 
+    'Karamani', 'Kinnow', 'Knool Khol', 'Ladies Finger', 'Leafy Vegetable', 
+    'Lemon', 'Lentil', 'Lime', 'Linseed', 'Little Gourd', 'Long Melon', 
+    'Maida Atta', 'Maize', 'Mango', 'Masur Dal', 'Methi Leaves', 'Mint', 
+    'Moath Dal', 'Moong Dal', 'Mushrooms', 'Musk Melon', 'Mustard', 
+    'Mustard Oil', 'Niger Seed', 'Onion', 'Orange', 'Paddy', 'Papaya', 
+    'Parval', 'Pear', 'Peas', 'Peas cod', 'Pepper garbled', 'Pigeon Pea', 
+    'Pineapple', 'Plum', 'Pomegranate', 'Potato', 'Pumpkin', 'Raddish', 'Ragi', 
+    'Rajgir', 'Red Gram', 'Rice', 'Ridge Gourd', 'Round gourd', 'Rubber', 
+    'Sapota', 'Seam', 'Seemebadnekai', 'Sesamum', 'Snakeguard', 'Soyabean', 
+    'Spinach', 'Sponge Gourd', 'Squash', 'Sugar', 'Surat Beans', 
+    'Suvarna Gadde', 'Sweet Lime', 'Sweet Potato', 'Sweet Pumpkin', 
+    'Tamarind Fruit', 'Tapioca', 'Taramira', 'Tender Coconut', 'Thinai', 
+    'Tinda', 'Tobacco', 'Tomato', 'Tur Dal', 'Turmeric', 'Turnip', 'Urd Dal', 
+    'Varagu', 'Water Melon', 'Wheat', 'Wheat Atta', 'White Pumpkin', 'Wood', 
+    'Zizyphus'
+];
+
+        async function getLocation() {
+            const locationError = document.getElementById('locationError');
+            const latitudeInput = document.getElementById('latitude');
+            const longitudeInput = document.getElementById('longitude');
+            const temperatureInput = document.getElementById('temperature');
+            const humidityInput = document.getElementById('humidity');
+            const rainfallInput = document.getElementById('rainfall');
+
+            locationError.textContent = '';
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        latitudeInput.value = latitude;
+                        longitudeInput.value = longitude;
+
+                        const apiKey = 'f41e3bc7c53535454618420b9da2d7a0';
+                        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${apiKey}`;
+
+                        try {
+                            const response = await fetch(weatherUrl);
+                            const weatherData = await response.json();
+                            temperatureInput.value = weatherData.main.temp;
+                            humidityInput.value = weatherData.main.humidity;
+
+                            const rainfallData = [120, 100, 90, 110, 95, 105]; // Simulated rainfall data
+                            const avgRainfall = rainfallData.reduce((sum, val) => sum + val, 0) / rainfallData.length;
+                            rainfallInput.value = avgRainfall.toFixed(2);
+                        } catch (error) {
+                            locationError.textContent = 'Unable to fetch weather details.';
+                        }
+                    },
+                    () => {
+                        locationError.textContent = 'Unable to retrieve location. Please enable GPS.';
+                    }
+                );
+            } else {
+                locationError.textContent = 'Geolocation is not supported by this browser.';
+            }
+        }
+
+        async function predictCrops() {
+    const nitrogen = document.getElementById('nitrogen').value;
+    const phosphorus = document.getElementById('phosphorus').value;
+    const potassium = document.getElementById('potassium').value;
+    const ph = document.getElementById('ph').value;
+    const temperature = document.getElementById('temperature').value;
+    const humidity = document.getElementById('humidity').value;
+    const rainfall = document.getElementById('rainfall').value;
+
+    const predictedCropsDiv = document.getElementById('predictedCrops');
+    const dropdownContainer = document.getElementById('dropdownContainer');
+    const cropDropdown = document.getElementById('cropDropdown');
+
+    // Clear previous predictions
+    predictedCropsDiv.innerHTML = '';
+    dropdownContainer.style.display = 'block';
+    cropDropdown.innerHTML = `<option value="">Select a crop</option>` + allCrops
+        .map((crop) => `<option value="${crop}">${crop}</option>`)
+        .join('');
+
+    // cropDropdown.innerHTML = '';
+
+    // Validate inputs
+    if (!nitrogen || !phosphorus || !potassium || !ph || !temperature || !humidity || !rainfall) {
+        predictedCropsDiv.innerHTML = `<p class="error">All fields are required to predict crops.</p>`;
+        return;
+    }
+
+    // Prepare request data
+    const requestData = {
+        N_SOIL: parseFloat(nitrogen),
+        P_SOIL: parseFloat(phosphorus),
+        K_SOIL: parseFloat(potassium),
+        TEMPERATURE: parseFloat(temperature),
+        HUMIDITY: parseFloat(humidity),
+        ph: parseFloat(ph),
+        RAINFALL: parseFloat(rainfall),
+    };
+
+    try {
+        // Call the Flask API
+        const response = await fetch('http://127.0.0.1:5000/api/predict/maharashtra', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData),
+        });
+
+        if (!response.ok) {
+            throw new Error('Error fetching prediction results.');
+        }
+
+        const data = await response.json();
+
+        // Check if crops were returned
+        if (data.predicted_crops && data.predicted_crops.length > 0) {
+            predictedCropsDiv.innerHTML = `<h3>Predicted Crops</h3>`;
+            data.predicted_crops.forEach(({ crop, probability }) => {
+                predictedCropsDiv.innerHTML += `
+                    <label>
+                        <input type="radio" name="predictedCrops" value="${crop}" onclick="handleCheckboxChange()">
+                        ${crop} (Probability: ${(probability * 100).toFixed(2)}%)
+                    </label><br>
+                `;
+            });
+
+            dropdownContainer.style.display = 'block';
+            cropDropdown.innerHTML = `<option value="">Select a crop</option>` + allCrops
+                .map((crop) => `<option value="${crop}">${crop}</option>`)
+                .join('');
+        } else {
+            predictedCropsDiv.innerHTML = `<p>No crops predicted. Please try again with different inputs.</p>`;
+        }
+    } catch (error) {
+        predictedCropsDiv.innerHTML = `<p class="error">Failed to fetch predictions: ${error.message}</p>`;
+    }
+}
+
+
+
+        function handleCheckboxChange() {
+            document.getElementById('cropDropdown').value = '';
+        }
+
+        function handleDropdownChange() {
+            const dropdown = document.getElementById('cropDropdown').value;
+            const checkboxes = document.querySelectorAll('input[name="predictedCrops"]');
+            checkboxes.forEach((checkbox) => (checkbox.checked = false));
+        }
+
+        async function handleSubmit(event) {
+    event.preventDefault();
+
+    const selectedCrop =
+        document.querySelector('input[name="predictedCrops"]:checked')?.value ||
+        document.getElementById('cropDropdown').value;
+
+    if (!selectedCrop) {
+        alert('Please select a crop before submitting.');
+        return;
+    }
+
+    const nitrogen = parseFloat(document.getElementById('nitrogen').value);
+    const phosphorus = parseFloat(document.getElementById('phosphorus').value);
+    const potassium = parseFloat(document.getElementById('potassium').value);
+    const ph = parseFloat(document.getElementById('ph').value);
+    const temperature = parseFloat(document.getElementById('temperature').value);
+    const humidity = parseFloat(document.getElementById('humidity').value);
+    const rainfall = parseFloat(document.getElementById('rainfall').value);
+
+    const requestData = {
+        N_SOIL: nitrogen,
+        P_SOIL: phosphorus,
+        K_SOIL: potassium,
+        TEMPERATURE: temperature,
+        HUMIDITY: humidity,
+        ph: ph,
+        RAINFALL: rainfall,
+        CROP: selectedCrop,
+    };
+
+    try {
+        const response = await fetch('http://127.0.0.1:5000/api/add-entry', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData),
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            alert(result.message);
+        } else {
+            const error = await response.json();
+            alert(`Error: ${error.error}`);
+        }
+    } catch (error) {
+        alert(`Failed to submit the entry: ${error.message}`);
+    }
+}
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Dashboard</title>
+    <style>
+      body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar {
+    background-color: #4CAF50;
+    padding: 10px;
+    color: white;
+    text-align: center;
+}
+
+.navbar a {
+    color: white;
+    margin: 0 10px;
+    text-decoration: none;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+.card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+  </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2>Farmer Dashboard</h2>
+        <a href="crop_prediction.html">Crop Prediction</a>
+        <a href="fertilizer_recommendation.html">Fertilizer Recommendations</a>
+        <a href="irrigation.html">Irrigation Monitoring</a>
+        <a href="pesticides.html">Pesticides Detection</a>
+        <a href="profile.html">My Profile</a>
+        <a href="login.html">Logout</a>
+    </div>
+
+    <div class="container">
+        <h1>Welcome, Farmer!</h1>
+        
+        <div class="card">
+            <h3>Crop Prediction</h3>
+            <p>Recommended Crop: Groundnut</p>
+            <p>Yield Estimate: 25 Quintals/Acre</p>
+        </div>
+
+        <div class="card">
+            <h3>Irrigation Status</h3>
+            <p>Soil Moisture: 45% (Needs watering soon)</p>
+            <p>Next Irrigation: In 2 Days</p>
+        </div>
+
+        <div class="card">
+            <h3>Weather Forecast</h3>
+            <p>Current Temperature: 30°C</p>
+            <p>Rain Expected on Thursday</p>
+        </div>
+
+        <div class="card">
+            <h3>Market Prices</h3>
+            <p>Groundnut: ₹5200 / Quintal</p>
+            <p>Wheat: ₹2500 / Quintal</p>
+        </div>
+    </div>
+
+</body>
+</html>
