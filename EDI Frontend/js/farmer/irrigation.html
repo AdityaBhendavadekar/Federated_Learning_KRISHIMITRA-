@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Irrigation Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .navbar {
+            background-color: #4CAF50;
+            padding: 15px;
+            color: white;
+            text-align: center;
+        }
+
+        .navbar a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        form label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: bold;
+        }
+
+        form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        form button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="crop_prediction.html">Crop Prediction</a>
+        <a href="fertilizer_recommendation.html">Fertilizer Recommendations</a>
+        <a href="pesticides.html">Pesticides Detection</a>
+        <a href="profile.html">My Profile</a>
+        <a href="login.html">Logout</a>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <h2>Irrigation Prediction</h2>
+        <form id="irrigation-form">
+            <label for="crop-name">Crop Name:</label>
+            <input type="text" id="crop-name" placeholder="Enter the crop name" required>
+
+            <label for="soil-type">Soil Type:</label>
+            <input type="text" id="soil-type" placeholder="Enter the soil type" required>
+
+            <label for="current-moisture">Current Soil Moisture (%):</label>
+            <input type="number" id="current-moisture" placeholder="Enter soil moisture percentage" required>
+
+            <label for="temperature">Current Temperature (°C):</label>
+            <input type="number" id="temperature" placeholder="Enter the temperature in °C" required>
+
+            <label for="humidity">Current Humidity (%):</label>
+            <input type="number" id="humidity" placeholder="Enter the humidity percentage" required>
+
+            <label for="rainfall">Recent Rainfall (mm):</label>
+            <input type="number" id="rainfall" placeholder="Enter recent rainfall in mm" required>
+
+            <label for="wind-speed">Wind Speed (km/h):</label>
+            <input type="number" id="wind-speed" placeholder="Enter wind speed in km/h" required>
+
+            <label for="irrigation-type">Irrigation Type:</label>
+            <input type="text" id="irrigation-type" placeholder="Enter irrigation type (e.g., drip, sprinkler)" required>
+
+            <label for="field-area">Field Area (hectares):</label>
+            <input type="number" id="field-area" placeholder="Enter field area in hectares" required>
+
+            <button type="submit">Get Irrigation Prediction</button>
+        </form>
+    </div>
+
+    <script>
+        // Form submission handler
+        document.getElementById('irrigation-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const cropName = document.getElementById('crop-name').value;
+            const soilType = document.getElementById('soil-type').value;
+            const currentMoisture = document.getElementById('current-moisture').value;
+            const temperature = document.getElementById('temperature').value;
+            const humidity = document.getElementById('humidity').value;
+            const rainfall = document.getElementById('rainfall').value;
+            const windSpeed = document.getElementById('wind-speed').value;
+            const irrigationType = document.getElementById('irrigation-type').value;
+            const fieldArea = document.getElementById('field-area').value;
+
+            // Display input values in the console (connect this to your backend later)
+            console.log({
+                cropName,
+                soilType,
+                currentMoisture,
+                temperature,
+                humidity,
+                rainfall,
+                windSpeed,
+                irrigationType,
+                fieldArea,
+            });
+
+            alert('Irrigation prediction submitted! Check the console for input values.');
+        });
+    </script>
+
+</body>
+</html>

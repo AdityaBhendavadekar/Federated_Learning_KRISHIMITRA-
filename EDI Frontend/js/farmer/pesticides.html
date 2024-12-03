@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesticides Recommendation System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(16, 227, 37, 0.1);
+        }
+        .navbar {
+            background-color: #4CAF50;
+            padding: 10px;
+            color: white;
+            text-align: center;
+        }
+        .navbar a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        label {
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .file-upload label {
+            width: 200%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .file-upload label:hover {
+            background-color: #45a049;
+        }
+        .file-upload span {
+            margin-left: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .recommendation {
+            margin-top: 20px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        .pesticide-details {
+            margin-top: 20px;
+            font-size: 1em;
+            color: #333;
+            line-height: 1.5;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        img.preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="crop_prediction.html">Crop Prediction</a>
+        <a href="fertilizer_recommendation.html">Fertilizer Recommendations</a>
+        <a href="irrigation.html">Irrigation Monitoring</a>
+        <a href="profile.html">My Profile</a>
+        <a href="login.html">Logout</a>
+    </div>
+    <div class="container">
+        <h2>Pesticides Recommendation System</h2>
+        <form id="pesticide-form">
+            <label>Upload Image</label>
+            <div class="file-upload">
+                <label for="crop-image">Choose File</label>
+                <input type="file" id="crop-image" accept="image/*" required>
+                <span id="file-name">No file chosen</span>
+            </div>
+            <button type="submit">Get Pesticide</button>
+        </form>
+        <img id="image-preview" class="preview" alt="Image Preview" style="display: none;">
+        <div id="recommendation" class="recommendation"></div>
+        <div id="pesticide-details" class="pesticide-details" style="display: none;"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('pesticide-form');
+        const imageInput = document.getElementById('crop-image');
+        const fileNameSpan = document.getElementById('file-name');
+        const imagePreview = document.getElementById('image-preview');
+        const recommendationDiv = document.getElementById('recommendation');
+        const pesticideDetailsDiv = document.getElementById('pesticide-details');
+
+        // Show chosen file name
+        imageInput.addEventListener('change', () => {
+            const file = imageInput.files[0];
+            fileNameSpan.textContent = file ? file.name : "No file chosen";
+            
+            // Preview the uploaded image
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const file = imageInput.files[0];
+            if (!file) {
+                alert("Please upload an image before submitting.");
+                return;
+            }
+
+            // Display a detailed recommendation
+            const recommendedPesticide = "Neem Oil-Based Pesticide";
+            const pesticideDescription = `
+                Neem oil-based pesticide is an eco-friendly solution that targets pests like aphids, mealybugs, and whiteflies.
+                It disrupts the life cycle of pests, including their feeding, mating, and egg-laying behaviors.
+            `;
+            const pesticidePrecautions = `
+                - Wear gloves and avoid direct contact with the pesticide.
+                - Do not spray during strong winds.
+                - Avoid application on rainy days to prevent runoff.
+                - Wash hands thoroughly after use.
+            `;
+
+            recommendationDiv.textContent = `The recommended pesticide is: ${recommendedPesticide}`;
+            pesticideDetailsDiv.innerHTML = `
+                <strong>Description:</strong> ${pesticideDescription}<br>
+                <strong>Precautions:</strong><br>${pesticidePrecautions}
+            `;
+            pesticideDetailsDiv.style.display = "block";
+        });
+    </script>
+</body>
+</html>
