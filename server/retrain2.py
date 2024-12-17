@@ -267,6 +267,7 @@ if __name__ == "__main__":
     updated_global_model_path = "global_model.pkl"  # Path where the updated global model will be saved
 
     # Call the function to update the global model
-    update_global_model(global_model_path, client_model_paths, global_label_encoder_path, client_label_encoder_paths, updated_global_model_path)
+    if(len(client_model_paths)>0):
+        update_global_model(global_model_path, client_model_paths, global_label_encoder_path, client_label_encoder_paths, updated_global_model_path)
     upload_file(global_model_path, FOLDER_UPLOAD_ID,global_model_path)
     upload_file(global_label_encoder_path, FOLDER_UPLOAD_ID,global_label_encoder_path)

@@ -20,17 +20,16 @@
             box-shadow: 0 2px 5px rgba(16, 227, 37, 0.1);
         }
         .navbar {
-    background-color: #4CAF50;
-    padding: 10px;
-    color: white;
-    text-align: center;
-}
-
-.navbar a {
-    color: white;
-    margin: 0 10px;
-    text-decoration: none;
-}
+            background-color: #4CAF50;
+            padding: 10px;
+            color: white;
+            text-align: center;
+        }
+        .navbar a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+        }
         h2 {
             text-align: center;
             margin-bottom: 20px;
@@ -43,7 +42,7 @@
         label {
             margin: 10px 0 5px;
         }
-        input {
+        input, select {
             padding: 10px;
             margin-bottom: 10px;
             border: 1px solid #ccc;
@@ -85,33 +84,70 @@
             <label for="k">Potassium (K) %:</label>
             <input type="number" id="k" required>
             <label for="crop-name">Crop Name:</label>
-            <input type="text" id="crop-name" required>
+            <select id="crop-name" required>
+                <option value="" disabled selected>Select a crop</option>
+                <option value="Barley">Barley</option>
+                <option value="Cotton">Cotton</option>
+                <option value="Ground Nuts">Ground Nuts</option>
+                <option value="Maize">Maize</option>
+                <option value="Millets">Millets</option>
+                <option value="Oil seeds">Oil seeds</option>
+                <option value="Paddy">Paddy</option>
+                <option value="Pulses">Pulses</option>
+                <option value="Sugarcane">Sugarcane</option>
+                <option value="Tobacco">Tobacco</option>
+                <option value="Wheat">Wheat</option>
+            </select>
+            <label for="soil-type">Soil Name:</label>
+            <input type="text" id="soil-type" required>
+            <label for="temperature">Temperature:</label>
+            <input type="text" id="temperature" required>
+            <label for="humidity">Humidity:</label>
+            <input type="text" id="humidity" required>
+            <label for="moisture">Moisture:</label>
+            <input type="text" id="moisture" required>
             <button type="submit">Get Recommendation</button>
         </form>
         <div id="recommendation" class="recommendation"></div>
     </div>
 
     <script>
-        document.getElementById('fertilizer-form').addEventListener('submit', function(event) {
+        document.getElementById('fertilizer-form').addEventListener('submit', async function(event) {
             event.preventDefault(); // Prevent form submission
 
-            const n = parseFloat(document.getElementById('n').value);
-            const p = parseFloat(document.getElementById('p').value);
-            const k = parseFloat(document.getElementById('k').value);
-            const cropName = document.getElementById('crop-name').value;
+            // Gather input data
+            const customData = {
+                Nitrogen: parseFloat(document.getElementById('n').value),
+                Phosphorous: parseFloat(document.getElementById('p').value),
+                Potassium: parseFloat(document.getElementById('k').value),
+                "Crop Type": document.getElementById('crop-name').value,
+                "Soil Type": document.getElementById('soil-type').value,
+                Temparature: parseFloat(document.getElementById('temperature').value),
+                Humidity: parseFloat(document.getElementById('humidity').value),
+                Moisture: parseFloat(document.getElementById('moisture').value)
+            };
 
-            // Simple logic for fertilizer recommendation (You can expand this logic)
-            let recommendation = "Based on the inputs: ";
+            try {
+                // Send POST request to the API
+                const response = await fetch('http://127.0.0.1:5000/api/fert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(customData)
+                });
 
-            if (cropName.toLowerCase() === "groundnut") {
-                if (n < 30) recommendation += "Increase Nitrogen (N). ";
-                if (p < 20) recommendation += "Increase Phosphorus (P). ";
-                if (k < 20) recommendation += "Increase Potassium (K). ";
-            } else {
-                recommendation += "No specific recommendations available for this crop.";
+                // Handle API response
+                const result = await response.json();
+                if (response.ok) {
+                    document.getElementById('recommendation').textContent =
+                        `Recommended Fertilizer: ${result.predicted_fertilizer}`;
+                } else {
+                    document.getElementById('recommendation').textContent = `Error: ${result.error}`;
+                }
+            } catch (error) {
+                document.getElementById('recommendation').textContent = `Error: ${error.message}`;
             }
-
-            document.getElementById('recommendation').textContent = recommendation;
         });
     </script>
 </body>

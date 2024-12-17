@@ -1,8 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import pickle
 import numpy as np
 import pandas as pd
+import joblib
+
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -36,6 +38,11 @@ def load_model_and_encoder(state):
         return model, label_encoder
     except Exception as e:
         raise Exception(f"Error loading model or label encoder: {e}")
+
+@app.route('/', methods=['GET'])
+def hello():
+    return render_template("index.html")
+
 
 @app.route('/api/predict/<state>', methods=['POST'])
 def predict(state):
@@ -107,7 +114,6 @@ def add_entry():
         # Use concat for appending
         df = pd.concat([df, new_entry_df], ignore_index=True)
 
-
         # Save the updated dataset back to the file
         df.to_csv("maharashtra/maharashtra_data.csv", index=False)
 
@@ -117,9 +123,59 @@ def add_entry():
         return jsonify({"error": str(e)}), 500
     
 
-    
+@app.route('/api/fert', methods=['POST'])
+def predict_fertilizer():
+    # Load the saved model and tools
+    model = joblib.load("recommendation_model/fertilizer_model.pkl")
+    scaler = joblib.load("recommendation_model/scaler.pkl")
+    label_encoders = joblib.load("recommendation_model/label_encoders.pkl")
+    target_encoder = joblib.load("recommendation_model/target_encoder.pkl")
+    """
+    Predict the fertilizer based on custom input data provided in JSON format.
+    """
+    try:
+        # Parse input data from JSON request
+        custom_data = request.json
 
-    
+        # Validate input data
+        required_keys = [
+            "Temparature", "Humidity", "Moisture", 
+            "Soil Type", "Crop Type", "Nitrogen", 
+            "Potassium", "Phosphorous"
+        ]
+        if not all(key in custom_data for key in required_keys):
+            return jsonify({"error": "Missing required fields in input"}), 400
+
+        # Extract and preprocess numerical data
+        numerical_features = ["Temparature", "Humidity", "Moisture", "Nitrogen", "Potassium", "Phosphorous"]
+        numerical_data = np.array([custom_data[feature] for feature in numerical_features]).reshape(1, -1)
+        numerical_data_scaled = scaler.transform(numerical_data)
+
+        # Extract and preprocess categorical data
+        categorical_features = ["Soil Type", "Crop Type"]
+        categorical_data = []
+        for feature in categorical_features:
+            if custom_data[feature] in label_encoders[feature].classes_:
+                encoded_value = label_encoders[feature].transform([custom_data[feature]])[0]
+            else:
+                return jsonify({
+                    "error": f"Unseen value '{custom_data[feature]}' for feature '{feature}'. Valid values are: {list(label_encoders[feature].classes_)}"
+                }), 400
+            categorical_data.append(encoded_value)
+        categorical_data = np.array(categorical_data).reshape(1, -1)
+
+        # Combine numerical and categorical data
+        processed_data = np.hstack((numerical_data_scaled, categorical_data))
+
+        # Predict fertilizer
+        prediction = model.predict(processed_data)
+        predicted_fertilizer = target_encoder.inverse_transform(prediction)[0]
+
+        # Return prediction
+        return jsonify({"predicted_fertilizer": predicted_fertilizer}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

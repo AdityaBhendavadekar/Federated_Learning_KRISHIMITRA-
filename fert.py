@@ -1,49 +1,68 @@
-import joblib
 import pandas as pd
+import joblib
 from sklearn.preprocessing import LabelEncoder
 
 # Load the saved model
-model = joblib.load('fertilizer_prediction_model.pkl')
+model_path = '/media/aditya/Work/B-Tech/EDI Flask/fertilizer_prediction_model.pkl'  # Adjust the file path if needed
+model = joblib.load(model_path)
+
 print("Model loaded successfully!")
-    
-# Load the LabelEncoder used during training
+
+# Load the dataset again for testing
+test_data_path = '/media/aditya/Work/B-Tech/EDI Flask/fertilizer_prediction_model.pkl'  # Adjust the file path if needed
+df_test = pd.read_csv(test_data_path)
+
+# Ensure the column names match your dataset
+categorical_features = ['Soil Type', 'Crop Type']  # Update these based on your dataset
+numerical_features = ['Nitrogen', 'Potassium', 'Phosphorous']  # Updated names for N, P, K
+target_column = 'Fertilizer Name'
+
+# Encode the target variable (if applicable, for comparison with predictions)
 label_encoder = LabelEncoder()
-label_encoder.classes_ = ['FertilizerA', 'FertilizerB', 'FertilizerC']  # Replace with your classes from training
+df_test[target_column] = label_encoder.fit_transform(df_test[target_column])
 
-# Define the prediction function
-def predict_fertilizer(soil_type, crop_type, nitrogen, potassium, phosphorous):
-    # Create a single input dataframe
-    input_data = pd.DataFrame({
-        'Soil Type': [soil_type],
-        'Crop Type': [crop_type],
-        'Nitrogen': [nitrogen],
-        'Potassium': [potassium],
-        'Phosphorous': [phosphorous]
-    })
+# Prepare the test features and target
+X_test = df_test[numerical_features + categorical_features]
+y_test = df_test[target_column]
 
-    # Categorical features used during training
-    categorical_features = ['Soil Type', 'Crop Type']
-    # Numerical features
-    numerical_features = ['Nitrogen', 'Potassium', 'Phosphorous']
+# Convert categorical features using pandas get_dummies
+X_test_encoded = pd.get_dummies(X_test, columns=categorical_features, drop_first=True)
 
-    # One-hot encode the input data
-    input_encoded = pd.get_dummies(input_data, columns=categorical_features, drop_first=True)
+# Align test data to the trained model's feature set
+X_test_encoded = X_test_encoded.reindex(columns=model.get_booster().feature_names, fill_value=0)
 
-    # Align input data with model training columns
-    input_encoded = input_encoded.reindex(columns=X_train_encoded.columns, fill_value=0)
+# Make predictions
+y_pred = model.predict(X_test_encoded)
 
-    # Make prediction
-    prediction = model.predict(input_encoded)
-    predicted_label = label_encoder.inverse_transform([prediction[0]])[0]  # Decode the numeric label
-    return predicted_label
+# Decode the predictions to original class labels
+y_pred_decoded = label_encoder.inverse_transform(y_pred)
 
-# Take user input
-soil_type = input("Enter Soil Type: ")
-crop_type = input("Enter Crop Type: ")
-nitrogen = float(input("Enter Nitrogen value: "))
-potassium = float(input("Enter Potassium value: "))
-phosphorous = float(input("Enter Phosphorous value: "))
+# Evaluate the model on the test set
+from sklearn.metrics import accuracy_score, classification_report
 
-# Predict and display the result
-result = predict_fertilizer(soil_type, crop_type, nitrogen, potassium, phosphorous)
-print(f"Recommended Fertilizer: {result}")
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Test Set Accuracy: {accuracy * 100:.2f}%")
+
+# Generate a classification report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, target_names=label_encoder.classes_))
+
+# Test with a sample input
+sample_input = pd.DataFrame({
+    'Nitrogen': [50],
+    'Potassium': [20],
+    'Phosphorous': [30],
+    'Soil Type': ['Clay'],  # Ensure this value exists in your training data
+    'Crop Type': ['Rice']   # Ensure this value exists in your training data
+})
+
+# Encode the sample input
+sample_input_encoded = pd.get_dummies(sample_input, columns=categorical_features, drop_first=True)
+sample_input_encoded = sample_input_encoded.reindex(columns=model.get_booster().feature_names, fill_value=0)
+
+# Predict fertilizer recommendation for the sample input
+sample_prediction = model.predict(sample_input_encoded)
+sample_prediction_decoded = label_encoder.inverse_transform(sample_prediction)
+
+print("\nSample Input Prediction:")
+print(f"Recommended Fertilizer: {sample_prediction_decoded[0]}")
